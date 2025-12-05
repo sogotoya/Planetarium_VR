@@ -26,9 +26,9 @@ public class PlayingManager : MonoBehaviour
     int m_ID=0;
     private void Start()
     {
-        foreach(GameObject obj in m_SAM.m_Parent)
+        foreach(Transform obj in m_SAM.m_Parent)
         {
-            m_StarObj.Add(obj);
+            m_StarObj.Add(obj.gameObject);
         }
         m_StartAudio.Play();
         StartCoroutine(StartAudio());
@@ -42,7 +42,7 @@ public class PlayingManager : MonoBehaviour
     {
         //再生終了したらスタート
         yield return new WaitWhile(() => m_StartAudio.isPlaying);
-
+        Debug.Log("始まりのあいさつ終了");
         StartCoroutine(StartStar());
 
         //StartCoroutine(StartCapricorn());
@@ -54,6 +54,8 @@ public class PlayingManager : MonoBehaviour
     /// <returns></returns>
     IEnumerator StartStar()
     {
+        if (m_StarObj[m_ID] == null)yield break;
+
         //ID番号の表示
         m_StarObj[m_ID].SetActive(true);
 
@@ -69,6 +71,7 @@ public class PlayingManager : MonoBehaviour
         //リストの中身とIDが同じになったら終了サウンドに移行
         if(m_StarObj.Count==m_ID)
         {
+            Debug.Log("〆のあいさつ");
             m_EndAudio.Play();
             yield break;
         }
