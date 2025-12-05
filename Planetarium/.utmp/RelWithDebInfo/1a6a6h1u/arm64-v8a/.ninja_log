@@ -1,0 +1,10 @@
+# ninja log v5
+52	4757	7866089004153910	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	41cbde74b9adedb5
+67	4781	7866089004361748	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	c97bb2ea0d806ddb
+37	4786	7866089005042816	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	8ef25ccdcb1ae69b
+103	4791	7866089005436670	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	cd2700932a41eec9
+21	4896	7866089006685630	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	7d04dbab4d78140b
+84	5551	7866089013246534	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	bd96db18e20ad91d
+120	5640	7866089014139284	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	efedb540172817b0
+2	5818	7866089015917930	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	de894a1c19bbcf94
+5819	6106	7866089018788612	C:/ANABUKI/Unity/GameEngine1/Planetarium_VR/Planetarium/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/1a6a6h1u/obj/arm64-v8a/libgame.so	fb38f97f4551fa42

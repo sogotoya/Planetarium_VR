@@ -6,6 +6,9 @@ public class SetActiveManager : MonoBehaviour
     [Tooltip("星座をまとめている親オブジェクト")]
     public Transform m_Parent;
 
+    [Tooltip("餃座")]
+    public GameObject m_Gyouza;
+
     [Tooltip("いて座")]
     public GameObject m_Sagittarius;
 
