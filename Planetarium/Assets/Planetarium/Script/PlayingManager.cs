@@ -19,6 +19,8 @@ public class PlayingManager : MonoBehaviour
 
     List<GameObject> m_StarObj=new List<GameObject>();
 
+    List<GameObject> m_StarImage = new List<GameObject>();
+
     //説明中のオーディオ
     AudioSource m_AS;
 
@@ -29,6 +31,10 @@ public class PlayingManager : MonoBehaviour
         foreach(Transform obj in m_SAM.m_Parent)
         {
             m_StarObj.Add(obj.gameObject);
+        }
+        foreach (Transform obj in m_SAM.m_ParentImage)
+        {
+            m_StarImage.Add(obj.gameObject);
         }
         m_StartAudio.Play();
         StartCoroutine(StartAudio());
@@ -54,10 +60,17 @@ public class PlayingManager : MonoBehaviour
     /// <returns></returns>
     IEnumerator StartStar()
     {
-        if (m_StarObj[m_ID] == null)yield break;
+        //リストの中身とIDが同じになったら終了サウンドに移行
+        if (m_StarObj.Count == m_ID)
+        {
+            Debug.Log("〆のあいさつ");
+            m_EndAudio.Play();
+            yield break;
+        }
 
         //ID番号の表示
         m_StarObj[m_ID].SetActive(true);
+        m_StarImage[m_ID].SetActive(true);
 
         //ID番号のオーディオ取得
         m_AS = m_StarObj[m_ID].GetComponent<AudioSource>();
@@ -68,13 +81,7 @@ public class PlayingManager : MonoBehaviour
         yield return new WaitWhile(() => m_AS.isPlaying);
         m_AS.Stop();
 
-        //リストの中身とIDが同じになったら終了サウンドに移行
-        if(m_StarObj.Count==m_ID)
-        {
-            Debug.Log("〆のあいさつ");
-            m_EndAudio.Play();
-            yield break;
-        }
+
 
         m_ID++;
 

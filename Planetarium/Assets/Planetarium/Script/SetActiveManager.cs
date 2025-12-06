@@ -34,12 +34,20 @@ public class SetActiveManager : MonoBehaviour
     public GameObject m_Scorpius;
 
 
+    [Tooltip("星座の画像をまとめている親オブジェクト")]
+    public Transform m_ParentImage;
+
     private void Start()
     {
         //オブジェクト一括非表示
         foreach (Transform child in m_Parent)
         {
             child.gameObject.SetActive(false);
+        }
+        //オブジェクト一括非表示
+        foreach (Transform childImage in m_ParentImage)
+        {
+            childImage.gameObject.SetActive(false);
         }
     }
 }
