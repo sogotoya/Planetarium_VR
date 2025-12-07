@@ -1,40 +1,15 @@
 using UnityEngine;
 
+/// <summary>
+/// プロジェクト起動時星座画像とオーディオ、画像仮想をまとめているそれぞれを非表示に設定
+/// </summary>
 public class SetActiveManager : MonoBehaviour
 {
 
-    [Tooltip("星座をまとめている親オブジェクト")]
+    [Header("星座の画像とオーディオまとめている親オブジェクト")]
     public Transform m_Parent;
 
-    [Tooltip("餃座")]
-    public GameObject m_Gyouza;
-
-    [Tooltip("いて座")]
-    public GameObject m_Sagittarius;
-
-    [Tooltip("やぎ座")]
-    public GameObject m_Capricorn;
-
-    [Tooltip("みずがめ座")]
-    public GameObject m_Aquarius;
-
-    [Tooltip("うお座")]
-    public GameObject m_Pisces;
-
-    [Tooltip("しし座")]
-    public GameObject m_Leo;
-
-    [Tooltip("おとめ座")]
-    public GameObject m_Virgo;
-
-    [Tooltip("てんびん座")]
-    public GameObject m_Libra;
-
-    [Tooltip("さそり座")]
-    public GameObject m_Scorpius;
-
-
-    [Tooltip("星座の画像をまとめている親オブジェクト")]
+    [Header("星座の画像仮想をまとめている親オブジェクト")]
     public Transform m_ParentImage;
 
     private void Start()

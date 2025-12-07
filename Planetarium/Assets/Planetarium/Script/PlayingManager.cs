@@ -1,24 +1,26 @@
-using NUnit.Framework;
 using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Audio;
 
+/// <summary>
+/// 今のサウンド終了後、次のオブジェクトのサウンドを再生する
+/// </summary>
 public class PlayingManager : MonoBehaviour
-{
-    [SerializeField]
-    [Header("最初の説明")]
+{ 
+    [Header("最初の説明"), SerializeField]
     AudioSource m_StartAudio;
 
-    [SerializeField]
-    [Header("終了の説明")]
+    [Header("終了の説明"), SerializeField]
     AudioSource m_EndAudio;
 
-    [SerializeField]
+    [Header("SetActiveManagerをオブジェクトアタッチ"), SerializeField]
     SetActiveManager m_SAM;
 
+    //「---Constellation_Obj---」のリスト
     List<GameObject> m_StarObj=new List<GameObject>();
 
+    //「Constellation_Image_Canvas」のリスト
     List<GameObject> m_StarImage = new List<GameObject>();
 
     //説明中のオーディオ
@@ -26,6 +28,7 @@ public class PlayingManager : MonoBehaviour
 
     //現在のリストナンバー
     int m_ID=0;
+
     private void Start()
     {
         foreach(Transform obj in m_SAM.m_Parent)
