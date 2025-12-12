@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
+using UnityEngine.UI;
 
 /// <summary>
 /// プロジェクト起動時星座画像とオーディオ、画像仮想をまとめているそれぞれを非表示に設定
@@ -22,7 +24,8 @@ public class SetActiveManager : MonoBehaviour
         //オブジェクト一括非表示
         foreach (Transform childImage in m_ParentImage)
         {
-            childImage.gameObject.SetActive(false);
+            SpriteRenderer image = childImage.GetComponent<SpriteRenderer>();
+            image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
         }
     }
 }

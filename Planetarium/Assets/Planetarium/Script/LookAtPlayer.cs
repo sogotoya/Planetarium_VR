@@ -8,6 +8,15 @@ public class LookAtPlayer : MonoBehaviour
 
     void Update()
     {
-        transform.LookAt(m_Player);
+        //ƒvƒŒƒCƒ„[‚Ì•ûŒüæ“¾
+        Vector3 vPos=m_Player.position-transform.position;
+
+        //Y²0
+        vPos.y = 0;
+
+        Quaternion targetRotation = Quaternion.LookRotation(vPos, Vector3.up);
+
+
+        transform.rotation = targetRotation;
     }
 }
