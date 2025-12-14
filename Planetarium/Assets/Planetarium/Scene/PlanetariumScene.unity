@@ -981,7 +981,7 @@ GameObject:
   m_Component:
   - component: {fileID: 530021130}
   m_Layer: 0
-  m_Name: Constellation_Virtual_Image_
+  m_Name: ---Constellation_Virtual_Image---
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
