@@ -1,65 +1,112 @@
 using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine.Audio;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 
 /// <summary>
-/// ¡‚ÌƒTƒEƒ“ƒhI—¹ŒãAŸ‚ÌƒIƒuƒWƒFƒNƒg‚ÌƒTƒEƒ“ƒh‚ğÄ¶‚·‚é
+/// ä»Šã®ã‚µã‚¦ãƒ³ãƒ‰çµ‚äº†å¾Œã€æ¬¡ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã‚µã‚¦ãƒ³ãƒ‰ã‚’å†ç”Ÿã™ã‚‹
 /// </summary>
 public class PlayingManager : MonoBehaviour
 {
-    [Header("Å‰‚Ìà–¾"), SerializeField]
+    [Header("æœ€åˆã®èª¬æ˜"), SerializeField]
     AudioSource m_StartAudio;
 
-    [Header("I—¹‚Ìà–¾"), SerializeField]
+    [Header("çµ‚äº†ã®èª¬æ˜"), SerializeField]
     AudioSource m_EndAudio;
 
-    [Header("SetActiveManager‚ğƒIƒuƒWƒFƒNƒgƒAƒ^ƒbƒ`"), SerializeField]
+    [Header("SetActiveManagerã‚’ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚¢ã‚¿ãƒƒãƒ"), SerializeField]
     SetActiveManager m_SAM;
-    [Header("ƒtƒF[ƒh‚Ìˆ—ŠÔ"), SerializeField]
+    [Header("ãƒ•ã‚§ãƒ¼ãƒ‰ã®å‡¦ç†æ™‚é–“"), SerializeField]
     float m_FadeDuration = 1.5f;
 
     List<GameObject> m_StarObj = new List<GameObject>();
     List<GameObject> m_StarImage = new List<GameObject>();
     AudioSource m_AS;
     int m_ID = 0;
+    CancellationTokenSource m_Cts;
+    bool m_IsSkipped = false;
 
     private void Start()
     {
-        //”­“®‚µ‚È‚©‚Á‚½‚Æ‚«‘Îô
+        m_Cts = new CancellationTokenSource();
+
+        //ç™ºå‹•ã—ãªã‹ã£ãŸã¨ãå¯¾ç­–
         foreach (Transform obj in m_SAM.m_Parent)
         {
             m_StarObj.Add(obj.gameObject);
-            obj.gameObject.SetActive(false); // ‰Šú‚Í”ñ•\¦
+            obj.gameObject.SetActive(false); // åˆæœŸã¯éè¡¨ç¤º
         }
         foreach (Transform obj in m_SAM.m_ParentImage)
         {
             m_StarImage.Add(obj.gameObject);
-            obj.gameObject.SetActive(false); // ‰Šú‚Í”ñ•\¦
+            obj.gameObject.SetActive(false); // åˆæœŸã¯éè¡¨ç¤º
         }
 
         m_StartAudio.Play();
         StartAudio().Forget();
     }
 
+    private void Update()
+    {
+        // Pã‚­ãƒ¼ã§ãƒ‡ãƒãƒƒã‚°ã‚¹ã‚­ãƒƒãƒ—
+        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame && !m_IsSkipped)
+        {
+            SkipAll();
+        }
+    }
+
+    /// <summary>
+    /// å…¨éŸ³å£°åœæ­¢ãƒ»å…¨æ˜Ÿåº§å³æ™‚è¡¨ç¤ºãƒ»çµ‚äº†ã‚ã„ã•ã¤å†ç”Ÿ
+    /// </summary>
+    private void SkipAll()
+    {
+        m_IsSkipped = true;
+
+        // 1. éåŒæœŸå‡¦ç†ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«
+        m_Cts?.Cancel();
+
+        // 2. å†ç”Ÿä¸­ã®å…¨éŸ³å£°ã‚’åœæ­¢
+        m_StartAudio.Stop();
+        if (m_AS != null) m_AS.Stop();
+
+        // 3. å…¨æ˜Ÿåº§ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å³åº§ã«ã‚¢ãƒ«ãƒ•ã‚¡1.0ã§è¡¨ç¤º
+        for (int i = 0; i < m_StarObj.Count; i++)
+        {
+            m_StarObj[i].SetActive(true);
+            SetAlpha(m_StarObj[i], 1f);
+        }
+        for (int i = 0; i < m_StarImage.Count; i++)
+        {
+            m_StarImage[i].SetActive(true);
+            SetAlpha(m_StarImage[i], 1f);
+        }
+
+        // 4. çµ‚äº†ã‚ã„ã•ã¤ã‚’å†ç”Ÿ
+        m_EndAudio.Play();
+
+        Debug.Log("ãƒ‡ãƒãƒƒã‚°ã‚¹ã‚­ãƒƒãƒ—: å…¨æ˜Ÿåº§è¡¨ç¤ºå®Œäº†");
+    }
+
     async UniTask StartAudio()
     {
-        await UniTask.WaitWhile(() => m_StartAudio.isPlaying);
-        Debug.Log("n‚Ü‚è‚Ì‚ ‚¢‚³‚ÂI—¹");
+        await UniTask.WaitWhile(() => m_StartAudio.isPlaying, cancellationToken: m_Cts.Token);
+        Debug.Log("å§‹ã¾ã‚Šã®ã‚ã„ã•ã¤çµ‚äº†");
         await StartStarAsync();
     }
 
     /// <summary>
-    /// ¯À‚Ìà–¾ˆ—
+    /// æ˜Ÿåº§ã®èª¬æ˜å‡¦ç†
     /// </summary>
     async UniTask StartStarAsync()
     {
         if (m_StarObj.Count == m_ID)
         {
-            Debug.Log("Y‚Ì‚ ‚¢‚³‚Â");
+            Debug.Log("ã€†ã®ã‚ã„ã•ã¤");
             m_EndAudio.Play();
             return;
         }
@@ -67,26 +114,26 @@ public class PlayingManager : MonoBehaviour
         GameObject currentStarObj = m_StarObj[m_ID];
         GameObject currentStarImage = m_StarImage[m_ID];
 
-        //ƒIƒuƒWƒFƒNƒg‚ğ•\¦‚µA“§–¾“x‚ğ0‚Éİ’è
-        //(‚±‚±‚Å‰æ‘œ‚Í‰æ–Ê‚É•\¦‚³‚ê‚é‚ªA“§–¾‚Å–Ú‚ÉŒ©‚¦‚È‚¢ó‘Ô‚É‚È‚é)
+        //ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¡¨ç¤ºã—ã€é€æ˜åº¦ã‚’0ã«è¨­å®š
+        //(ã“ã“ã§ç”»åƒã¯ç”»é¢ã«è¡¨ç¤ºã•ã‚Œã‚‹ãŒã€é€æ˜ã§ç›®ã«è¦‹ãˆãªã„çŠ¶æ…‹ã«ãªã‚‹)
         currentStarObj.SetActive(true);
         currentStarImage.SetActive(true);
         SetAlpha(currentStarObj, 0f);
         SetAlpha(currentStarImage, 0f);
 
-        //ƒI[ƒfƒBƒIÄ¶‚Æ‘Ò‹@
+        //ã‚ªãƒ¼ãƒ‡ã‚£ã‚ªå†ç”Ÿã¨å¾…æ©Ÿ
         m_AS = currentStarObj.GetComponent<AudioSource>();
         m_AS.Play();
 
-        //‰¹ºÄ¶‚ªI—¹‚·‚é‚Ü‚Å‘Ò‹@
-        await UniTask.WaitWhile(() => m_AS.isPlaying);
+        //éŸ³å£°å†ç”ŸãŒçµ‚äº†ã™ã‚‹ã¾ã§å¾…æ©Ÿ
+        await UniTask.WaitWhile(() => m_AS.isPlaying, cancellationToken: m_Cts.Token);
 
-        Debug.Log($"{currentStarObj.name} ‚Ìà–¾I—¹B‰æ‘œƒtƒF[ƒhƒCƒ“ŠJnB");
+        Debug.Log($"{currentStarObj.name} ã®èª¬æ˜çµ‚äº†ã€‚ç”»åƒãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³é–‹å§‹ã€‚");
 
-        //ƒtƒF[ƒhƒCƒ“ˆ—
+        //ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å‡¦ç†
         await UniTask.WhenAll(
-            Fade(currentStarObj, m_FadeDuration, targetAlpha: 1f),
-            Fade(currentStarImage, m_FadeDuration, targetAlpha: 1f)
+            Fade(currentStarObj, m_FadeDuration, targetAlpha: 1f, m_Cts.Token),
+            Fade(currentStarImage, m_FadeDuration, targetAlpha: 1f, m_Cts.Token)
         );
 
         m_ID++;
@@ -94,7 +141,7 @@ public class PlayingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// SpriteRenderer/Image‚Ì“§–¾“x‚ğu‚Éİ’è‚·‚é•â•ƒƒ\ƒbƒh
+    /// SpriteRenderer/Imageã®é€æ˜åº¦ã‚’ç¬æ™‚ã«è¨­å®šã™ã‚‹è£œåŠ©ãƒ¡ã‚½ãƒƒãƒ‰
     /// </summary>
     private void SetAlpha(GameObject targetObj, float alpha)
     {
@@ -109,12 +156,12 @@ public class PlayingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// “§–¾“x‚Ì•ÏX (”Ä—pƒƒ\ƒbƒh)
-    /// targetAlpha ‚ª 1f ‚È‚çƒtƒF[ƒhƒCƒ“A0f ‚È‚çƒtƒF[ƒhƒAƒEƒg‚Æ‚µ‚Ä‹@”\‚µ‚Ü‚·B
+    /// é€æ˜åº¦ã®å¤‰æ›´ (æ±ç”¨ãƒ¡ã‚½ãƒƒãƒ‰)
+    /// targetAlpha ãŒ 1f ãªã‚‰ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã€0f ãªã‚‰ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã¨ã—ã¦æ©Ÿèƒ½ã—ã¾ã™ã€‚
     /// </summary>
-    async UniTask Fade(GameObject targetObj, float duration, float targetAlpha)
+    async UniTask Fade(GameObject targetObj, float duration, float targetAlpha, CancellationToken cancellationToken = default)
     {
-        // ˆ—‘ÎÛ‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ÆŒ»İ‚ÌF‚ğæ“¾
+        // å‡¦ç†å¯¾è±¡ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã¨ç¾åœ¨ã®è‰²ã‚’å–å¾—
         Color currentColor;
         float startAlpha;
         SpriteRenderer sr = null;
@@ -135,7 +182,7 @@ public class PlayingManager : MonoBehaviour
             return; 
         }
 
-        //ƒtƒF[ƒhƒAƒEƒgŠ®—¹ˆÈŠO‚Í SetActive(true) ‚Ì‚Ü‚Ü
+        //ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆå®Œäº†æ™‚ä»¥å¤–ã¯ SetActive(true) ã®ã¾ã¾
         if (targetAlpha > 0f && !targetObj.activeSelf)
         {
             targetObj.SetActive(true);
@@ -151,25 +198,31 @@ public class PlayingManager : MonoBehaviour
 
             float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, t);
 
-            // “§–¾“x‚ğXV
+            // é€æ˜åº¦ã‚’æ›´æ–°
             Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, newAlpha);
             if (sr != null) sr.color = newColor;
             if (img != null) img.color = newColor;
 
-            // 1ƒtƒŒ[ƒ€‘Ò‹@
-            await UniTask.Yield();
+            // 1ãƒ•ãƒ¬ãƒ¼ãƒ å¾…æ©Ÿ
+            await UniTask.Yield(cancellationToken);
         }
 
-        //ˆ—I—¹Œã‚ÉŠ®‘S‚É–Ú•W“§–¾“x‚Éİ’è
+        //å‡¦ç†çµ‚äº†å¾Œã«å®Œå…¨ã«ç›®æ¨™é€æ˜åº¦ã«è¨­å®š
         Color finalColor = new Color(currentColor.r, currentColor.g, currentColor.b, targetAlpha);
         if (sr != null) sr.color = finalColor;
         if (img != null) img.color = finalColor;
 
-        // targetAlpha‚ª0f (ƒtƒF[ƒhƒAƒEƒgŠ®—¹) ‚Ìê‡‚Ì‚İASetActive(false)
+        // targetAlphaãŒ0f (ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆå®Œäº†) ã®å ´åˆã®ã¿ã€SetActive(false)
         if (targetAlpha < 0.01f)
         {
             targetObj.SetActive(false);
         }
+    }
+
+    private void OnDestroy()
+    {
+        m_Cts?.Cancel();
+        m_Cts?.Dispose();
     }
 }
 
