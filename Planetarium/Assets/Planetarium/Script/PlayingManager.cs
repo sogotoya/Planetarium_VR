@@ -24,6 +24,14 @@ public class PlayingManager : MonoBehaviour
     [Header("フェードの処理時間"), SerializeField]
     float m_FadeDuration = 1.5f;
 
+    [Header("最小音量（背中を向けている時）"), SerializeField]
+    float m_MinVolume = 0.2f;
+
+    [Header("最大音量（正面を向いている時）"), SerializeField]
+    float m_MaxVolume = 1.0f;
+
+    Transform m_CameraTransform;
+
     List<GameObject> m_StarObj = new List<GameObject>();
     List<GameObject> m_StarImage = new List<GameObject>();
     AudioSource m_AS;
@@ -34,6 +42,11 @@ public class PlayingManager : MonoBehaviour
     private void Start()
     {
         m_Cts = new CancellationTokenSource();
+        // メインカメラのTransformを取得（VR環境の頭の位置・向きとして利用）
+        if (Camera.main != null)
+        {
+            m_CameraTransform = Camera.main.transform;
+        }
 
         //発動しなかったとき対策
         foreach (Transform obj in m_SAM.m_Parent)
@@ -57,6 +70,33 @@ public class PlayingManager : MonoBehaviour
         if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame && !m_IsSkipped)
         {
             SkipAll();
+        }
+
+        // --- Y軸（水平面）の向きによる音量調整 ---
+        // 再生中の音声があり、かつ目標の星座オブジェクトが存在する場合
+        if (m_AS != null && m_AS.isPlaying && m_CameraTransform != null && m_ID < m_StarObj.Count)
+        {
+            GameObject currentTarget = m_StarObj[m_ID];
+            
+            // カメラとターゲットの水平面(XZ平面)上の方向ベクトルを計算 (Y座標を0にして高さを完全に無視)
+            Vector3 targetPosXZ = new Vector3(currentTarget.transform.position.x, 0f, currentTarget.transform.position.z);
+            Vector3 cameraPosXZ = new Vector3(m_CameraTransform.position.x, 0f, m_CameraTransform.position.z);
+            
+            // カメラからターゲットへの水平方向ベクトル（長さを1に正規化）
+            Vector3 dirToTargetXZ = (targetPosXZ - cameraPosXZ).normalized;
+            
+            // カメラの正面方向の水平ベクトル（長さを1に正規化）
+            Vector3 cameraForwardXZ = new Vector3(m_CameraTransform.forward.x, 0f, m_CameraTransform.forward.z).normalized;
+            
+            // Y軸回転(水平面)上での内積を計算
+            // 1.0: 完全に同じ方向(正面) / 0.0: 真横 / -1.0: 完全に後ろ
+            float dot = Vector3.Dot(cameraForwardXZ, dirToTargetXZ);
+            
+            // 内積 (-1.0 ～ 1.0) を (0.0 ～ 1.0) の割合に変換
+            float targetPercentage = (dot + 1f) / 2f;
+            
+            // 割合に応じて音量をリアルタイムに設定 (m_MinVolume ～ m_MaxVolume)
+            m_AS.volume = Mathf.Lerp(m_MinVolume, m_MaxVolume, targetPercentage);
         }
     }
 
@@ -123,6 +163,15 @@ public class PlayingManager : MonoBehaviour
 
         //オーディオ再生と待機
         m_AS = currentStarObj.GetComponent<AudioSource>();
+        
+        // 3Dサウンド設定（左右のパンニングによる立体感のみ残す）
+        m_AS.spatialBlend = 1.0f; 
+        
+        // 距離による減衰を完全に無効化する
+        m_AS.rolloffMode = AudioRolloffMode.Linear; 
+        m_AS.minDistance = 100000f;  
+        m_AS.maxDistance = 100000f; 
+        
         m_AS.Play();
 
         //音声再生が終了するまで待機
